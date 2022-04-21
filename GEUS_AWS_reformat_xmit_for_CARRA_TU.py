@@ -284,13 +284,12 @@ for i,name in enumerate(names):
                     if ly == 'p':
                         fig_path=opath+'Figs/'
                         os.system('mkdir -p '+fig_path)
-                        plt.savefig(fig_path+meta.alt_name[i]+'.png', bbox_inches='tight', dpi=300)
+                        plt.savefig(fig_path+meta.alt_name[i]+'.png', bbox_inches='tight', dpi=72)
                 # else:
                 #     df2.to_csv(opath+meta.alt_name[i]+'.csv')
             
     
                 
-
             # plt.close()
             # n_rows=2
             # fig, ax = plt.subplots(n_rows,1,figsize=(12,14))
