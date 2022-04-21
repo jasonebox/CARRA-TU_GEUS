@@ -12,10 +12,14 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
-
+from datetime import date
 
 if os.getlogin() == 'jason':
-    base_path = '/Users/jason/Dropbox/AWS/CARRA-TU_GEUS_AWS/'
+    base_path = '/Users/jason/Dropbox/AWS/CARRA-TU_GEUS/'
+
+today = date.today()
+versionx= today.strftime('%Y-%m-%d')
+
 
 os.chdir(base_path)
 
@@ -50,9 +54,9 @@ unitsx=['time','counter','Pressure_L','Pressure_U','deg. C','deg. C','Humidity_L
 #  	FieldNames("WindSpeed,WindDirection")
 # Sample(1,InstantDataTerminator,String)
 
-cols=['time','counter','Pressure_L','Pressure_U','Asp_temp_L','Asp_temp_U','Humidity_L','Humidity_U','WindSpeed_L','WindDirection_L','WindSpeed_U','WindDirection_U','SWD','SWU','LW Downward','LW Upward','TemperatureRadSensor','SR_A','SR_B','T_firn_1','T_firn_2','T_firn_3','T_firn_4','T_firn_5','T_firn_6','T_firn_7','T_firn_8','T_firn_9','T_firn_10','T_firn_11','Roll','Pitch','Heading','Rain_amount_L','Rain_amount_U','counterx','Latitude','Longitude','Altitude','ss','Giodal','GeoUnit','Battery','NumberSatellites','HDOP','FanCurrent_L','FanCurrent_U','Quality','LoggerTemp']
+# cols=['time','counter','Pressure_L','Pressure_U','Asp_temp_L','Asp_temp_U','Humidity_L','Humidity_U','WindSpeed_L','WindDirection_L','WindSpeed_U','WindDirection_U','SWD','SWU','LW Downward','LW Upward','TemperatureRadSensor','SR_A','SR_B','T_firn_1','T_firn_2','T_firn_3','T_firn_4','T_firn_5','T_firn_6','T_firn_7','T_firn_8','T_firn_9','T_firn_10','T_firn_11','Roll','Pitch','Heading','Rain_amount_L','Rain_amount_U','counterx','Latitude','Longitude','Altitude','ss','Giodal','GeoUnit','Battery','NumberSatellites','HDOP','FanCurrent_L','FanCurrent_U','Quality','LoggerTemp']
 
-cols=['SR_A','SR_B','IceHeight','TemperatureIce1','TemperatureIce2','TemperatureIce3','TemperatureIce4','TemperatureIce5','TemperatureIce6','TemperatureIce7','TemperatureIce8','TiltX','TiltY','TimeGPS','Latitude','Longitude','Altitude','HDOP','currents','Battery','AirPressureMinus1000','Temperature','RelativeHumidity','WindSpeed','WindDirection','InstantDataTerminator']
+# cols=['SR_A','SR_B','IceHeight','TemperatureIce1','TemperatureIce2','TemperatureIce3','TemperatureIce4','TemperatureIce5','TemperatureIce6','TemperatureIce7','TemperatureIce8','TiltX','TiltY','TimeGPS','Latitude','Longitude','Altitude','HDOP','currents','Battery','AirPressureMinus1000','Temperature','RelativeHumidity','WindSpeed','WindDirection','InstantDataTerminator']
 
 cols_requested=['year','day','month','hour','airpressureminus1000','temperature','relativehumidity','windspeed','winddirection','Lat_decimal','Lon_decimal','elev']
 
@@ -74,14 +78,13 @@ for i,name in enumerate(names):
                  'thermistorstring_1','thermistorstring_2','thermistorstring_3','thermistorstring_4','thermistorstring_5','thermistorstring_6','thermistorstring_7','thermistorstring_8',
                  'roll','pitch','heading','Rain_amount_L','gpstime','Latitude','Longitude','Altitude','giodal','geounit?',
                  'Battery','?1','asp_temp_u','humidity_u','##','##2','##3']
-        if meta.alt_name[i]=='SWC':
+        # if meta.alt_name[i]=='SDM':
+        if ((meta.network[i]=='g')or(meta.network[i]=='p')):
         # if meta.network[i]=='g':
-        # if names[i]=='QAS_L':
-        # if ((meta.network[i]=='g')or(meta.network[i]=='p')):
-        # if meta.alt_name[i]=='CP1':
+        # if meta.alt_name[i]=='KAN_U':
             print(names[i])
             fn='/Users/jason/Dropbox/AWS/test/aws_data/AWS_'+str(meta.IMEI[i])+'.txt'
-            print(fn)
+            # print(fn)
             
             fn2="/tmp/"+str(meta.IMEI[i])+".txt"
             msg="sed 's/,,/,/g' "+fn+" > "+fn2
@@ -96,14 +99,6 @@ for i,name in enumerate(names):
             t0=datetime(2020, 8, 1) ; t1=datetime(2021, 7, 8)
             t0=datetime(2021,12, 1) ; t1=datetime(2022, 4, 1)
 
-            drop=1
-            if drop:
-                if meta.alt_name[i]!='JAR':
-                    df.drop(df[df.year<2021].index, inplace=True)
-                    df.reset_index(drop=True, inplace=True)
-                    t0=datetime(2021, 6, 1) ; t1=datetime(2022, 5, 1)
-
-    
             df['month'] = df['date'].dt.month
             df['day'] = df['date'].dt.day
             df['hour'] = df['date'].dt.hour
@@ -111,6 +106,16 @@ for i,name in enumerate(names):
             df['days_per_year'] = 365
             df['days_per_year'][df['year']==2020]=366
             df['dec_year'] = df['year']+df['date'].dt.dayofyear/df['days_per_year']
+
+            drop=1
+            if drop:
+                # if meta.alt_name[i]!='JAR':
+                df.drop(df[df.dec_year<2021.9].index, inplace=True)
+                df.reset_index(drop=True, inplace=True)
+                t0=datetime(2021, 12, 1) ; t1=datetime(2022, 5, 1)
+
+
+    
             # plt.plot(df['dec_year'])
             ##%%
 
@@ -126,6 +131,20 @@ for i,name in enumerate(names):
                 df.airpressureminus1000-=1000
             # df.columns
 
+            # # filter stuck wind sensor data
+            # filter_me=['windspeed','winddirection']
+            # # filter_me=['winddirection']
+            # window=6
+            # for param in filter_me:
+            #     for ii in range(window,len(df)):
+            #         for jj in range(window):
+            #             v=df[param][ii:ii+window]==df[param][ii]
+            #             if sum(v)==6:df[param][ii:ii+window]=np.nan
+            #             # print(ii,sum(v))
+            #             # if np.nanstd(df[param][ii:ii+window])<0.2:
+            #             #     df[param][ii:ii+window]=np.nan
+            #             # # print(ii,v)
+                        
             # ------------------- position
             df.Latitude=df.Latitude.astype(float)
             df.Longitude=df.Longitude.astype(float)
@@ -175,17 +194,40 @@ for i,name in enumerate(names):
             wo=1
             
             if wo:
-                cols=df.columns
-                k=1
-                var=df[cols[k]]
-                df2=df[cols_requested]
-                # df2.index = df2.index.date
-                # df2.index = pd.to_datetime(df.date)
-                if len(df)>0:
+                N=len(df)
+                if N>0:
+                    cols=df.columns
+                    k=1
+                    var=df[cols[k]]
+                    df2=df[cols_requested]
+                    # df2=df2.replace(r'^\s*$', np.nan, regex=True)
+                    # df2 = df2.replace(r'^\s*$', np.nan, regex=True)
+
+
+                    # df2.iloc[j,4:9]
+                    # bads=[]
+                    # for j in range(N):
+                    #     if sum(np.isnan(df2.iloc[j,4:9]))==5:
+                    #         bads.append(j)
+                        
+                    # # bads=1
+                    # df2.drop(bads, axis=0, inplace=True)
+
+                    # df2.drop(df[((df2.airpressureminus1000 == np.nan)&(df2.temperature == np.nan)&(df2.relativehumidity == np.nan)&(df2.windspeed == np.nan)&(df2.winddirection == np.nan))].index, inplace=True)
+                    # df2.drop(df2[((df2.airpressureminus1000 == np.nan)&(df2.relativehumidity == np.nan)&(df2.windspeed == np.nan)&(df2.winddirection == np.nan))].index, inplace=True)
+                    # df2 = 
+                    # df2[((np.isnan(df2.airpressureminus1000))&(np.isnan(df2.relativehumidity))&(np.isnan(df2.windspeed))&(np.isnan(df2.winddirection)))]
+                    # ix = df2[((df2.airpressureminus1000 == np.nan)&(df2.temperature == np.nan)&(df2.relativehumidity == np.nan)&(df2.windspeed == np.nan)&(df2.winddirection == np.nan))].index
+                    # ix = df2[df2.airpressureminus1000 == np.nan].index
+                    # print(ix)
+                    # df2.drop(ix)
+                    # df2.index = df2.index.date
+                    # df2.index = pd.to_datetime(df.date)
                     formats = {'airpressureminus1000': '{:.1f}','windspeed': '{:.1f}','relativehumidity': '{:.1f}','winddirection': '{:.1f}','relativehumidity': '{:.1f}','Lat_decimal': '{:.5f}','Lon_decimal': '{:.5f}','elev': '{:.2f}'}
                     for col, f in formats.items():
                         df2[col] = df2[col].map(lambda x: f.format(x))
-                    opath='./output/GEUS/'
+                    opath='./AWS_data_for_CARRA-TU/'+versionx+'/'
+                    os.system('mkdir -p '+opath)
                     df2.to_csv(opath+meta.alt_name[i]+'.csv')
                     
     
@@ -240,9 +282,11 @@ for i,name in enumerate(names):
                     
                     ly='p'
                     if ly == 'p':
-                        plt.savefig(opath+'Figs/'+meta.alt_name[i]+'.png', bbox_inches='tight', dpi=300)
-                else:
-                    df2.to_csv(opath+meta.alt_name[i]+'.csv')
+                        fig_path=opath+'Figs/'
+                        os.system('mkdir -p '+fig_path)
+                        plt.savefig(fig_path+meta.alt_name[i]+'.png', bbox_inches='tight', dpi=300)
+                # else:
+                #     df2.to_csv(opath+meta.alt_name[i]+'.csv')
             
     
                 
