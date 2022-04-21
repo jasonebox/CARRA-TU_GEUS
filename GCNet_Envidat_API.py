@@ -42,18 +42,18 @@ api_path='https://www.envidat.ch/data-api/gcnet/csv/'
 params='airtemp1,airtemp2,airtemp_cs500air1,airtemp_cs500air2,rh1,rh2,windspeed1,windspeed2,winddir1,winddir2,pressure,battvolt,sh1,sh2'
 date_range='2021-12-01/2022-04-19'
 
-for st,site in enumerate(sites):
-    # if st>=0:
-    # if site=='tunu_n':
-    if site=='dye2':
-    # if site=='summit':
-        print(site)
-        tmpfile='/Users/jason/Dropbox/AWS/CARRA-TU_GEUS/raw/Envidat/'+site+'.csv'
-        msg='curl '+api_path+site+'/'+params+'/end/-999/'+date_range+'/ > '+tmpfile
-        msg='curl https://www.envidat.ch/data-api/gcnet/csv/'+site+'/'+params+'/end/-999/'+date_range+'/ > '+tmpfile
-        print(msg)
-        os.system(msg)
-        # os.system('open '+tmpfile)
+# for st,site in enumerate(sites):
+#     # if st>=0:
+#     # if site=='tunu_n':
+#     if site=='dye2':
+#     # if site=='summit':
+#         print(site)
+#         tmpfile='/Users/jason/Dropbox/AWS/CARRA-TU_GEUS/raw/Envidat/'+site+'.csv'
+#         msg='curl '+api_path+site+'/'+params+'/end/-999/'+date_range+'/ > '+tmpfile
+#         msg='curl https://www.envidat.ch/data-api/gcnet/csv/'+site+'/'+params+'/end/-999/'+date_range+'/ > '+tmpfile
+#         print(msg)
+#         os.system(msg)
+#         # os.system('open '+tmpfile)
 
 #%%
 
@@ -89,7 +89,7 @@ for st,site in enumerate(sites):
     # if site=='tunu_n':
     # if site=='summit':
     print(st,site,sites2[st])
-    if sites2[st]=='DY2':
+    if sites2[st]=='SUM':
         v_meta=np.where(sites2[st]==meta.name) ; v_meta=v_meta[0][0]
         print(site)
         df=pd.read_csv('/Users/jason/Dropbox/AWS/CARRA-TU_GEUS/raw/Envidat/'+site+'.csv')
@@ -117,10 +117,27 @@ for st,site in enumerate(sites):
         df['airpressureminus1000_raw']=df.airpressureminus1000
         df['airtemp1_raw']=df.airtemp1
         df['airtemp2_raw']=df.airtemp2
-
+        df['windspeed1_raw']=df.windspeed1
+        df['windspeed2_raw']=df.windspeed2
+        df['winddir1_raw']=df.winddir1
+        df['winddir2_raw']=df.winddir2 
+        
         df['rh1_raw']=df.rh1
         df['rh2_raw']=df.rh2
-        
+
+        if sites2[st]=='SUM':
+            df.rh1[( (df.time>datetime(2021,12,1)) & (df.time<datetime(2031,12,31)) & (df.rh1<35) )]=np.nan
+            t0=datetime(2022,3,20,14)
+            t1=datetime(2022,4,12,12)
+            df.windspeed1[:]=np.nan
+            df.windspeed2[( (df.time>t0) & (df.time<t1))]=np.nan
+            df.winddir1[:]=np.nan
+            df.winddir2[( (df.time>t0) & (df.time<t1))]=np.nan
+            df.airtemp1[( (df.time>datetime(2021,12,1)) & (df.time<datetime(2022,4,15)) & (df.airtemp1>0) )]=np.nan
+            df.airtemp2[( (df.time>datetime(2021,12,1)) & (df.time<datetime(2022,4,15)) & (df.airtemp2>0) )]=np.nan
+            df.rh1[( (df.time>datetime(2021,12,1)) & (df.time<datetime(2022,4,15)) & (df.rh1<35) )]=np.nan
+            df.rh2[( (df.time>datetime(2021,12,1)) & (df.time<datetime(2022,4,15)) & (df.rh2<35) )]=np.nan
+
         if sites2[st]=='DY2':
             df = df.rename({'windspeed1': 'temp1', 'windspeed2': 'temp2'}, axis=1)
             df = df.rename({'temp1': 'windspeed2', 'temp2': 'windspeed1'}, axis=1)
@@ -208,6 +225,8 @@ for st,site in enumerate(sites):
         ax[cc].set_xlim(t0,t1)
         cc+=1
 
+        ax[cc].plot(df.windspeed1_raw,'.r',label='wind1 rejected')
+        ax[cc].plot(df.windspeed2_raw,'.k',label='wind2 rejected')
         ax[cc].plot(df.windspeed1,'.',label='windspeed1')
         ax[cc].plot(df.windspeed2,'.',label='windspeed2')
         ax[cc].plot(df.windspeed,'.',label='windspeed')
@@ -216,6 +235,8 @@ for st,site in enumerate(sites):
         ax[cc].set_xlim(t0,t1)
         cc+=1
 
+        ax[cc].plot(df.winddir1_raw,'.r',label='wind dir1 rejected')
+        ax[cc].plot(df.winddir2_raw,'.k',label='wind dir2 rejected')
         ax[cc].plot(df.winddir1,'.',label='winddirection 1')
         ax[cc].plot(df.winddir2,'.',label='winddirection 2')
         ax[cc].plot(df.winddirection,'.',label='winddirection')
