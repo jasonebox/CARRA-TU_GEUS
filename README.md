@@ -1,8 +1,10 @@
 # CARRA-TU_GEUS_AWS
 CARRA-TU_GEUS_AWS
 
-work here is about delivering each ~month Greenland hourly AWS data into an operational weather modeling system under CARRA. Assimilating the AWS data alongside a lot of other observations strongly improves the accuracy of the model.
+work here is about delivering each ~month Greenland hourly AWS data* into an operational weather modeling system under CARRA. Assimilating the AWS data alongside a lot of other observations strongly improves the accuracy of the model.
 
+* emphasis on air pressure and near surface air temperature.
+* 
 the work includes the use of data from the Envidat API to gather the Koni Steffen GC-Net AWS data that appear at this nice web site https://www.envidat.ch/gcnet/#/
 
 The work reformats data from PROMICE, GEUS GC-Net Koni Steffen GC-Net AWS
