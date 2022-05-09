@@ -33,6 +33,9 @@ plt.rcParams['grid.linewidth'] = th/2
 plt.rcParams['axes.linewidth'] = 1
 plt.rcParams['figure.figsize'] = 12, 20
 
+# -------------------------------- dates covered by this delivery
+date0='2021-06-01'
+date1='2022-04-01'
 
 today = date.today()
 versionx= today.strftime('%Y-%m-%d')
@@ -86,11 +89,11 @@ ly='p'
 
 for i,name in enumerate(names):
     if i>=0:
-        if meta.alt_name[i]=='EGP':
-        # if meta.alt_name[i]=='SDM':
+        # if meta.alt_name[i]=='EGP':
+        # if meta.alt_name[i]=='CP1':
         # if ((meta.network[i]=='g')or(meta.network[i]=='p')):
-        # if meta.network[i]=='g':
-        # if meta.alt_name[i]=='KAN_U':
+        if meta.network[i]=='p':
+        # if meta.alt_name[i]=='QAS_M':
             print()
             print(i,names[i],meta.alt_name[i])
             site=meta.alt_name[i]
@@ -141,10 +144,12 @@ for i,name in enumerate(names):
             drop=1
             if drop:
                 # if meta.alt_name[i]!='JAR':
-                # df.drop(df[df.dec_year<2021.42].index, inplace=True)
-                df.drop(df[df.date<'2021-06-01 00:00:00'].index, inplace=True)
+                df.drop(df[df.date<date0].index, inplace=True)
                 df.reset_index(drop=True, inplace=True)
-                t0=datetime(2021, 5, 28) ; t1=datetime(2022, 5, 1)
+                df.drop(df[df.date>=date1].index, inplace=True)
+                df.reset_index(drop=True, inplace=True)
+
+                t0=datetime(2021, 6, 1) ; t1=datetime(2022, 3, 31)
 
             # dfx=df.copy()
             # dfx=dfx.drop(dfx.columns[1:3], axis=1)
@@ -160,9 +165,12 @@ for i,name in enumerate(names):
             # df['relativehumidity'] = pd.to_numeric(df['relativehumidity'])
             # df['airpressureminus1000'] = pd.to_numeric(df['airpressureminus1000'])
             df['relativehumidity'][df['relativehumidity']>105]=np.nan
+            df['relativehumidity'][df['relativehumidity']<30]=np.nan
             df['airpressureminus1000'][df['airpressureminus1000']>1000]=np.nan
             df.winddirection[df.winddirection.diff()==0]=np.nan
             df.windspeed[df.windspeed.diff()==0]=np.nan
+
+            # df['relativehumidity'][((df['relativehumidity'].diff()==0)&(df['relativehumidity']<30))]=np.nan
 
             if meta.network[i]=='g':
                 df.airpressureminus1000-=1000
@@ -211,7 +219,7 @@ for i,name in enumerate(names):
                 df.reset_index(drop=True, inplace=True)
                 
             # reject if more than 3 x std from mean
-            v=abs(df['Altitude']-np.nanmean(df['Altitude']))>(3*np.nanstd(df['Altitude']))
+            v=abs(df['Altitude']-np.nanmean(df['Altitude']))>(2*np.nanstd(df['Altitude']))
             df['Altitude'][v]=np.nan
             # plt.plot(df['Altitude'])
             v=np.isfinite(df['Altitude'])
@@ -221,20 +229,6 @@ for i,name in enumerate(names):
                 b, m = polyfit(x,y, 1)
                 df['elev']=df['dec_year']*m+b-1.4
                 
-                formatx='{x:,.3f}' ; fs=20
-                plt.rcParams["font.size"] = fs
-                plt.scatter(x,y,color='grey')
-                plt.plot((x[0],x[-1]),(x[0]*m+b,x[-1]*m+b),linewidth=th*3,color='r')
-                plt.ylabel('elevation, m')
-                plt.xlabel('year')
-                plt.title(meta.alt_name[i])
-                
-                if ly == 'p':
-                    fig_path=opath+'Figs/'
-                    os.system('mkdir -p '+fig_path)
-                    plt.savefig(fig_path+meta.alt_name[i]+'_elev.png', bbox_inches='tight', dpi=72)
-
-
 
             # plt.plot(abs(df['Altitude']-temp))
             
@@ -247,16 +241,31 @@ for i,name in enumerate(names):
             wo=1
             
             if wo:
+
                 N=len(df)
                 if N>0:
+
+                    opath='./AWS_data_for_CARRA-TU/data_range_'+date0+'_to_'+date1+'/PROMICE_GC-Net_GEUS/'
+                    os.system('mkdir -p '+opath)
+    
+                    fs=20
+                    plt.close()
+                    plt.rcParams["font.size"] = fs
+                    plt.scatter(x,y,color='grey')
+                    plt.plot((x[0],x[-1]),(x[0]*m+b,x[-1]*m+b),linewidth=th*3,color='r')
+                    plt.ylabel('elevation, m')
+                    plt.xlabel('year')
+                    plt.title(meta.alt_name[i])
+                    
+                    if ly == 'p':
+                        fig_path=opath+'Figs/'
+                        os.system('mkdir -p '+fig_path)
+                        plt.savefig(fig_path+meta.alt_name[i]+'_elev.png', bbox_inches='tight', dpi=72)
 
                     cols=df.columns
                     k=1
                     var=df[cols[k]]
                     df2=df[cols_requested]
-                    # df2=df2.replace(r'^\s*$', np.nan, regex=True)
-                    # df2 = df2.replace(r'^\s*$', np.nan, regex=True)
-
 
                     # df2.iloc[j,4:9]
                     # bads=[]
@@ -280,7 +289,6 @@ for i,name in enumerate(names):
                     formats = {'airpressureminus1000': '{:.1f}','windspeed': '{:.1f}','relativehumidity': '{:.1f}','winddirection': '{:.1f}','relativehumidity': '{:.1f}','Lat_decimal': '{:.5f}','Lon_decimal': '{:.5f}','elev': '{:.2f}'}
                     for col, f in formats.items():
                         df2[col] = df2[col].map(lambda x: f.format(x))
-                    opath='./AWS_data_for_CARRA-TU/'+versionx+'/'
                     os.system('mkdir -p '+opath)
                     df2.to_csv(opath+meta.alt_name[i]+'.csv')
                     
@@ -288,6 +296,10 @@ for i,name in enumerate(names):
                     plt.close()
                     n_rows=7
                     fig, ax = plt.subplots(n_rows,1,figsize=(10,14))
+
+                    fs=16
+                    plt.rcParams["font.size"] = fs
+
                     cc=0
                     datex=df.date[-1].strftime('%Y %b %d %H')
                     ax[cc].set_title(site+' GEUS AWS transmissions June 2021 until '+str(datex))
