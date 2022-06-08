@@ -18,8 +18,9 @@ import numpy as np
 from numpy.polynomial.polynomial import polyfit
 
 # -------------------------------- dates covered by this delivery
-date0='2021-06-01'
-date1='2022-04-01'
+date0='2021-06-01' ; date1='2022-04-01'
+
+date0='2022-04-01' ; date1='2022-05-31'
 
 os.chdir('/Users/jason/Dropbox/AWS/CARRA-TU_GEUS/')
 
@@ -50,8 +51,9 @@ api_path='https://www.envidat.ch/data-api/gcnet/csv/'
 
 params='airtemp1,airtemp2,airtemp_cs500air1,airtemp_cs500air2,rh1,rh2,windspeed1,windspeed2,winddir1,winddir2,pressure,battvolt,sh1,sh2'
 date_range=date0+'/'+date1
+date_range2=date0+'_to_'+date1
 
-do_gather=0
+do_gather=1
 
 if do_gather:
     for st,site in enumerate(sites):
@@ -62,13 +64,16 @@ if do_gather:
         # if site=='nasa_east':
         # if site=='humboldt':
             print(site)
-            tmpfile='/Users/jason/Dropbox/AWS/CARRA-TU_GEUS/raw/Envidat/'+site+'.csv'
+            opath='/Users/jason/Dropbox/AWS/CARRA-TU_GEUS/raw/Envidat_'+date_range2+'/'
+            os.system('mkdir -p '+opath)
+            tmpfile=opath+site+'.csv'
             msg='curl '+api_path+site+'/'+params+'/end/-999/'+date_range+'/ > '+tmpfile
             msg='curl https://www.envidat.ch/data-api/gcnet/csv/'+site+'/'+params+'/end/-999/'+date_range+'/ > '+tmpfile
             print(msg)
             os.system(msg)
             # os.system('open '+tmpfile)
 
+inpath=opath
 #%%
 
 # created by /Users/jason/Dropbox/AWS/GCNET/GCNet_positions/GCN_positions_1999.py
@@ -220,14 +225,14 @@ for st,site in enumerate(sites):
     # if site=='tunu_n':
     # if site=='summit':
     print(st,site,sites2[st])
-    # if sites2[st]=='PET':
-    if sites2[st]!='null' :
+    if sites2[st]=='DY2':
+    # if sites2[st]!='null' :
         meta.columns
         v_meta=np.where(sites2[st]==meta.name) ; v_meta=v_meta[0][0]
         print(site)
         
         
-        df=pd.read_csv('/Users/jason/Dropbox/AWS/CARRA-TU_GEUS/raw/Envidat/'+site+'.csv')
+        df=pd.read_csv(inpath+site+'.csv')
         df = df.rename({'battvolt': 'Battery', 'pressure': 'P'}, axis=1)
         #'airtemp1', 'airtemp2', 'airtemp_cs500air1','airtemp_cs500air2'        
         if sites2[st]!='PET':
@@ -274,6 +279,15 @@ for st,site in enumerate(sites):
         df=adjuster(sites_BAV_convention[st],df,['winddir1','winddir2'],2021,6,1,'nan_constant',2022,4,12,'nan stuck values',0)
         df=adjuster(sites_BAV_convention[st],df,['TA1','TA2'],2021,6,1,'abs_diff',2022,5,8,'xmit outlier?',2.5)
         df=adjuster(sites_BAV_convention[st],df,['rh1','rh2'],2021,6,1,'min_filter',2022,4,1,'xmit outlier?',35)
+
+        if sites2[st]=='NEM':
+            df=adjuster(sites_BAV_convention[st],df,['TA1','TA2'],2021,6,1,'max_filter',2022,4,1,'xmit outlier?',2)
+            df=adjuster(sites_BAV_convention[st],df,['TA1','TA2'],2021,9,20,'nan_var',2022,4,1,'instrument burial!?',0)
+            df=adjuster(sites_BAV_convention[st],df,['rh1','rh2'],2021,9,20,'nan_var',2022,4,1,'instrument burial!?',0)
+            df=adjuster(sites_BAV_convention[st],df,['VW1','VW2'],2021,11,1,'nan_var',2022,4,1,'instrument burial!?',0)
+            df=adjuster(sites_BAV_convention[st],df,['VW1','VW2'],2021,6,1,'max_filter',2022,4,1,'instrument burial!?',16)
+            df=adjuster(sites_BAV_convention[st],df,['VW1','VW2'],2021,9,1,'max_filter',2021,10,1,'instrument burial!?',12.5)
+            df=adjuster(sites_BAV_convention[st],df,['winddir1','winddir2'],2021,10,20,'nan_var',2022,4,1,'instrument burial!?',0)
 
         if sites2[st]=='PET':
             df=adjuster(sites_BAV_convention[st],df,['TA1','TA2'],2021,6,1,'max_filter',2022,4,1,'xmit outlier?',4)
@@ -354,10 +368,13 @@ for st,site in enumerate(sites):
             df = df.rename({'temp1': 'VW2', 'temp2': 'VW1'}, axis=1)
             df=adjuster(sites_BAV_convention[st],df,['VW1'],2021,6,1,'max_filter',2021,8,1,'xmit outlier?',20)
             df=adjuster(sites_BAV_convention[st],df,['VW2'],2021,12,1,'max_filter',2021,12,31,'xmit outlier?',30)
-            df=adjuster(sites_BAV_convention[st],df,['P'],2021,6,1,'min_filter',2022,4,15,'xmit outlier?',725)
-            df=adjuster(sites_BAV_convention[st],df,['TA1','TA2'],2021,5,1,'max_filter',2022,4,22,'xmit outlier?',4)
+            df=adjuster(sites_BAV_convention[st],df,['VW1','VW2'],2022,4,23,'max_filter',2022,4,27,'xmit outlier?',20)
+            df=adjuster(sites_BAV_convention[st],df,['TA1','TA2'],2021,5,1,'max_filter',2022,5,1,'xmit outlier?',4)
             df.Battery[( (df.time>datetime(2021,12,1)) & (df.time<datetime(2021,12,31)) & (df.Battery>16) )]=np.nan
+            
+            df=adjuster(sites_BAV_convention[st],df,['P'],2021,6,1,'min_filter',2022,5,1,'xmit outlier?',725)
             df=adjuster(sites_BAV_convention[st],df,['rh1'],2021,6,1,'min_filter',2022,4,22,'xmit outlier?',30)
+            df=adjuster(sites_BAV_convention[st],df,['rh1'],2022,4,1,'min_filter',2022,5,1,'xmit outlier?',50)
 
             df=adjuster(sites_BAV_convention[st],df,['P'],2021,6,1,'nan_var',2022,4,22,'partially broken barometer can fix with regression?',0)
 
@@ -385,7 +402,7 @@ for st,site in enumerate(sites):
             df['relativehumidity']=df.rh1
         df['windspeed']=df[['VW1', 'VW2']].mean(axis=1)        
 
-        t0=datetime(2021, 6, 1) ; t1=datetime(2022, 4, 1)
+        t0=datetime(2022, 4, 1) ; t1=datetime(2022, 4, 30)
 
         # if sites2[st]=='SUM':
         #     t0=datetime(2022,3,13,14)
@@ -404,7 +421,7 @@ for st,site in enumerate(sites):
         # var=df[cols[k]]
                 
         plt_diagnostic=0
-        do_batch1=1 # 1 is for P, TA and 0 is for the others
+        do_batch1=0 # 1 is for P, TA and 0 is for the others
         wo=1
  
         if plt_diagnostic:
