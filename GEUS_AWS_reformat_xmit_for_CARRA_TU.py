@@ -19,7 +19,7 @@ if os.getlogin() == 'jason':
     base_path = '/Users/jason/Dropbox/AWS/CARRA-TU_GEUS/'
 
 th=2 # line thickness
-formatx='{x:,.3f}' ; fs=16
+formatx='{x:,.3f}' ; fs=15
 plt.rcParams["font.size"] = fs
 plt.rcParams['axes.facecolor'] = 'w'
 plt.rcParams['axes.edgecolor'] = 'k'
@@ -33,9 +33,98 @@ plt.rcParams['grid.linewidth'] = th/2
 plt.rcParams['axes.linewidth'] = 1
 plt.rcParams['figure.figsize'] = 12, 20
 
+# ----------------------------------------------------------- adjuster routine
+# jason box
+# procedure with different filter functions
+# counts cases rejected by filters
+# outputs filter to a format that is compatible for GC-Net-level-1-data-processing/GC-Net-level-1-data-processing.py
+def adjuster(site,df,var_list,y0,m0,d0,func,y1,m1,d1,comment,val):
+    tstring='%Y-%m-%dT%H:%M:%S'+'+00:00'
+
+    df_out = df.copy()
+    
+    t0=datetime(y0,m0,d0)
+    t1=datetime(y1,m1,d1)
+
+    # two variables required for abs_diff
+    if func == 'abs_diff': 
+        tmp0=df_out.loc[t0:t1,var_list[0]].values
+        tmp1=df_out.loc[t0:t1,var_list[1]].values
+        tmp = df_out.loc[t0:t1,var_list[1]].values-df_out.loc[t0:t1,var_list[0]].values
+        count=sum(abs(tmp)>val)
+        tmp0[abs(tmp)>val] = np.nan
+        tmp1[abs(tmp)>val] = np.nan
+        df_out.loc[t0:t1,var_list[0]] = tmp0
+        df_out.loc[t0:t1,var_list[1]] = tmp1
+
+    if func == 'abs_diff_del_instrument_2': 
+        tmp0=df_out.loc[t0:t1,var_list[0]].values
+        tmp1=df_out.loc[t0:t1,var_list[1]].values
+        tmp = df_out.loc[t0:t1,var_list[1]].values-df_out.loc[t0:t1,var_list[0]].values
+        count=sum(abs(tmp)>val)
+        # tmp0[abs(tmp)>val] = np.nan
+        tmp1[abs(tmp)>val] = np.nan
+        # df_out.loc[t0:t1,var_list[0]] = tmp0
+        df_out.loc[t0:t1,var_list[1]] = tmp1
+        
+    for var in var_list:
+        # set to nan stuck values
+        if func == 'nan_constant': 
+            tmp = df_out.loc[t0:t1,var]
+            count=sum(tmp.diff()==0)
+            tmp[tmp.diff()==0]=np.nan
+            df_out.loc[t0:t1,var] = tmp
+        
+        if func == 'min_filter': 
+            tmp = df_out.loc[t0:t1,var].values
+            count=sum(tmp<val)
+            tmp[tmp<val] = np.nan
+            df_out.loc[t0:t1,var] = tmp
+
+        if func == 'nan_var': 
+            tmp = df_out.loc[t0:t1,var].values
+            count=len(tmp)
+            tmp[:] = np.nan
+            df_out.loc[t0:t1,var] = tmp
+            
+        if func == 'max_filter': 
+            tmp = df_out.loc[t0:t1,var].values
+            count=sum(tmp>val)
+            tmp[tmp>val] = np.nan
+            df_out.loc[t0:t1,var] = tmp
+
+        # if 'swap_with_' in func: 
+        #     var2 = func[10:]
+        #     val_var = df_out.loc[t0:t1,var].values.copy()
+        #     val_var2 = df_out.loc[t0:t1,var2].values.copy()
+        #     df_out.loc[t0:t1,var2] = val_var
+        #     df_out.loc[t0:t1,var] = val_var2
+
+        msg=datetime(y0,m0,d0).strftime(tstring)+\
+        ','+datetime(y1,m1,d1).strftime(tstring)+\
+        ','+var+','+func+','+str(val)+','+comment+','+str(count)
+        # print(msg)
+
+        # dfx=pd.read_csv('/Users/jason/Dropbox/AWS/GCNET/GC-Net-level-1-data-processing/metadata/adjustments/'+site+'.csv')
+        # print(dfx)
+
+        wo=1
+        if wo:
+            opath_adjustments='./metadata/adjustments/'+site+'/'
+            os.system('mkdir -p '+opath_adjustments)
+            out_fn=opath_adjustments+var+'_'+func+'_'+datetime(y0,m0,d0).strftime('%Y-%m-%d')+'_'+datetime(y1,m1,d1).strftime('%Y-%m-%d')+'.csv'
+            out_concept=open(out_fn,'w')
+            out_concept.write('t0,t1,variable,adjust_function,adjust_value,comment,count\n')
+            out_concept.write(msg)
+            out_concept.close()
+
+    return(df_out)
+    # ----------------------------------------------------------- end adjuster routine
+
+
 # -------------------------------- dates covered by this delivery
-date0='2021-06-01'
-date1='2022-04-01'
+date0='2021-06-01' ; date1='2022-04-01'
+date0='2022-04-01' ; date1='2022-05-31'
 
 today = date.today()
 versionx= today.strftime('%Y-%m-%d')
@@ -84,15 +173,16 @@ cols_requested=['airpressureminus1000','temperature','relativehumidity','windspe
 # time range to consider
 t0=datetime(2020, 8, 1) ; t1=datetime(2021, 7, 8)
 t0=datetime(2021,12, 1) ; t1=datetime(2022, 4, 1)
+t0=datetime(2022,4, 1) ; t1=datetime(2022, 6, 1)
 
 ly='p'
 
 for i,name in enumerate(names):
     if i>=0:
-        # if meta.alt_name[i]=='EGP':
-        # if meta.alt_name[i]=='CP1':
+        # if meta.alt_name[i]=='QAS_U':
+        # if meta.alt_name[i]=='SDM':
         # if ((meta.network[i]=='g')or(meta.network[i]=='p')):
-        if meta.network[i]=='g':
+        if meta.network[i]=='p':
         # if meta.alt_name[i]=='QAS_M':
             print()
             print(i,names[i],meta.alt_name[i])
@@ -114,7 +204,8 @@ for i,name in enumerate(names):
                      'Battery','?1','asp_temp_u','humidity_u','##','##2','##3']
 
             print(names[i])
-            fn='/Users/jason/Dropbox/AWS/test/aws_data/AWS_'+str(meta.IMEI[i])+'.txt'
+            raw_path='/Users/jason/Dropbox/AWS/aws_data/'
+            fn=raw_path+'AWS_'+str(meta.IMEI[i])+'.txt'
             print(fn)
             
             # filtering of double commas
@@ -150,6 +241,7 @@ for i,name in enumerate(names):
                 df.reset_index(drop=True, inplace=True)
 
                 t0=datetime(2021, 6, 1) ; t1=datetime(2022, 3, 31)
+                t0=datetime(2022,4, 1) ; t1=datetime(2022, 5, 31)
 
             # dfx=df.copy()
             # dfx=dfx.drop(dfx.columns[1:3], axis=1)
@@ -175,6 +267,7 @@ for i,name in enumerate(names):
             if meta.network[i]=='g':
                 df.airpressureminus1000-=1000
             # df.columns
+
 
             # # filter stuck wind sensor data
             # filter_me=['windspeed','winddirection']
@@ -236,7 +329,15 @@ for i,name in enumerate(names):
    
 
             df.index = pd.to_datetime(df.date)
+
+            if meta.alt_name[i]=='QAS_M':
+                df=adjuster(meta.alt_name[i],df,['temperature','relativehumidity'],2022,4,1,'nan_var',2022,5,27,'instrument out?',0)
+
+            if meta.alt_name[i]=='QAS_U':
+                df=adjuster(meta.alt_name[i],df,['temperature','relativehumidity'],2022,4,1,'nan_var',2022,5,27,'instrument out?',0)
             
+            if meta.alt_name[i]=='TAS_A':
+                df=adjuster(meta.alt_name[i],df,['temperature','relativehumidity','winddirection','windspeed'],2022,4,1,'nan_var',2022,5,31,'instrument out?',0)
         
             wo=1
             
@@ -259,6 +360,8 @@ for i,name in enumerate(names):
                     
                     if ly == 'p':
                         fig_path=opath+'Figs/'
+                        os.system('mkdir -p '+fig_path)
+                        fig_path=opath+'Figs/elev/'
                         os.system('mkdir -p '+fig_path)
                         plt.savefig(fig_path+meta.alt_name[i]+'_elev.png', bbox_inches='tight', dpi=72)
 
@@ -297,12 +400,12 @@ for i,name in enumerate(names):
                     n_rows=7
                     fig, ax = plt.subplots(n_rows,1,figsize=(10,14))
 
-                    fs=16
+                    fs=15
                     plt.rcParams["font.size"] = fs
 
                     cc=0
                     datex=df.date[-1].strftime('%Y %b %d %H')
-                    ax[cc].set_title(site+' GEUS AWS transmissions June 2021 until '+str(datex))
+                    ax[cc].set_title(site+' GEUS AWS transmissions June 2021 until '+str(datex)+'h UTC')
                     ax[cc].plot(df.airpressureminus1000,'.',label='airpressureminus1000')
                     ax[cc].get_xaxis().set_visible(False)
                     ax[cc].legend()
