@@ -1,2 +1,2 @@
 t0,t1,variable,adjust_function,adjust_value,comment,count
-2022-05-31T00:00:00+00:00,2022-07-31T00:00:00+00:00,airpressureminus1000,min_filter,-1300,xmit outlier?,34
+2022-05-31T00:00:00+00:00,2022-07-31T00:00:00+00:00,airpressureminus1000,min_filter,-1300,xmit outlier?,0

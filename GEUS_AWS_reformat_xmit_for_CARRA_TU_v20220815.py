@@ -185,6 +185,7 @@ cols_requested=['airpressureminus1000','temperature','relativehumidity','windspe
 t0=datetime(2020, 8, 1) ; t1=datetime(2021, 7, 8)
 t0=datetime(2021,12, 1) ; t1=datetime(2022, 4, 1)
 t0=datetime(2022,5, 31) ; t1=datetime(2022, 7, 31)
+# t0=datetime(2022,5, 31) ; t1=datetime(2022, 8, 9)
 
 ly='p'
 wo=1
@@ -195,7 +196,9 @@ for i,name in enumerate(names):
         # if meta.alt_name[i]=='SDM':
         # if ((meta.network[i]=='g')or(meta.network[i]=='p')):
         # if meta.network[i]=='g':
-        if meta.alt_name[i]=='NSE':
+        # if meta.alt_name[i]=='CP1_2021':
+        # if meta.alt_name[i]=='SDM':
+        if meta.alt_name[i]=='QAS_U2':
             print()
             print(i,names[i],meta.alt_name[i])
             
@@ -221,7 +224,14 @@ for i,name in enumerate(names):
                      'thermistorstring_1','thermistorstring_2','thermistorstring_3','thermistorstring_4','thermistorstring_5','thermistorstring_6','thermistorstring_7','thermistorstring_8',
                      'roll','pitch','heading','Rain_amount_L','gpstime','Latitude','Longitude','Altitude','giodal','geounit?',
                      'Battery','?1','asp_temp_u','humidity_u','##','##2','##3']
-
+            if meta.alt_name[i]=='QAS_U2':
+                skip=2
+                # cols=['time','seconds_since_1990','airpressureminus1000','temperature','relativehumidity','windspeed','winddirection',
+                cols=['timestamp','seconds_since_1990','airpressure','temperature','relativehumidity','windspeed','winddirection',
+                  'shortwaveradiationin','shortwaveradiationout','longwaveradiationin','longwaveradiationout','temperatureradsensor','SR_A','SR_B','iceheight',
+                  'temperatureice1m','temperatureice2m','temperatureice3m','temperatureice4m','temperatureice5m','temperatureice6m','temperatureice7m','temperatureice10m',
+                  'tiltx','tilty','timegps','?0','?1','Latitude','Longitude','Altitude','hdop',
+                  'currents','Battery','airpressureminus1000x','temperature0','relativehumidity0','windspeed0','winddirection0','?2']
             print(names[i])
             fn='/Users/jason/Dropbox/AWS/aws_data/AWS_'+str(meta.IMEI[i])+'.txt'
             print(fn)
@@ -232,7 +242,7 @@ for i,name in enumerate(names):
             os.system(msg)
             fn=fn2    
             df=pd.read_csv(fn,header=None,names=cols,skiprows=skip)
-            
+
             # filtering of how NaN is spelled
             df[df=="NAN"]=np.nan
             df[df=="nan"]=np.nan
@@ -255,11 +265,11 @@ for i,name in enumerate(names):
                 # if meta.alt_name[i]!='JAR':
                 df.drop(df[df.date<date0].index, inplace=True)
                 df.reset_index(drop=True, inplace=True)
-                df.drop(df[df.date>=date1].index, inplace=True)
-                df.reset_index(drop=True, inplace=True)
+                # df.drop(df[df.date>=date1].index, inplace=True)
+                # df.reset_index(drop=True, inplace=True)
             print(df)
             print(df.columns)
-
+            
                 # t0=datetime(2022, 4, 1) ; t1=datetime(2022, 5, 31)
 
             # dfx=df.copy()
@@ -272,21 +282,28 @@ for i,name in enumerate(names):
             for kk,col in enumerate(cols):
                 if kk>0:
                     df[col] = pd.to_numeric(df[col])
+                    print(col,df[col][10])
+
             # df['temperature'] = pd.to_numeric(df['temperature'])
             # df['relativehumidity'] = pd.to_numeric(df['relativehumidity'])
             # df['airpressureminus1000'] = pd.to_numeric(df['airpressureminus1000'])
             df['relativehumidity'][df['relativehumidity']>105]=np.nan
             df['relativehumidity'][df['relativehumidity']<30]=np.nan
+            df.airpressure[df.airpressure>1000]=np.nan
+            df.airpressure[df.airpressure<600]=np.nan
+
             df['airpressureminus1000']=df.airpressure-1000
             # df['airpressureminus1000']=df.airpressure
-            df['airpressureminus1000'][df['airpressureminus1000']>1000]=np.nan
+            # df['airpressureminus1000'][df['airpressureminus1000']>1000]=np.nan
             df.winddirection[df.winddirection.diff()==0]=np.nan
             df.windspeed[df.windspeed.diff()==0]=np.nan
 
+            # print(df.columns)
+            
             # df['relativehumidity'][((df['relativehumidity'].diff()==0)&(df['relativehumidity']<30))]=np.nan
 
-            if meta.network[i]=='g':
-                df.airpressureminus1000-=1000
+            # if meta.network[i]=='g':
+            #     df.airpressureminus1000-=1000
             # df.columns
 
             # # filter stuck wind sensor data
@@ -357,11 +374,15 @@ for i,name in enumerate(names):
 
             if site=='NSE':
                 df=adjuster(site,df,['airpressureminus1000'],2022,4,1,'min_filter',2022,5,31,'xmit outlier?',-350)
-                df=adjuster(site,df,['airpressureminus1000'],2022,5,31,'min_filter',2022,7,31,'xmit outlier?',-1300)
-                df=adjuster(site,df,['airpressureminus1000'],2022,5,31,'max_filter',2022,7,31,'xmit outlier?',-1100)
+                # df=adjuster(site,df,['airpressureminus1000'],2022,5,31,'min_filter',2022,7,31,'xmit outlier?',-1300)
+                # df=adjuster(site,df,['airpressureminus1000'],2022,5,31,'max_filter',2022,7,31,'xmit outlier?',-1100)
                 df=adjuster(site,df,['temperature'],2022,4,1,'min_filter',2022,7,31,'xmit outlier?',-90)
                 df=adjuster(site,df,['temperature'],2022,4,1,'max_filter',2022,7,31,'xmit outlier?',9)
-                
+                df.temperature[df.temperature<-90]=np.nan
+                df.temperature[df.temperature>-9]=np.nan
+
+            # plt.plot(df.airpressureminus1000)
+            
             if site=='QAS_M':
                 # df=adjuster(site,df,['TA1','TA2'],2021,6,1,'max_filter',2022,4,1,'xmit outlier?',2)
                 df=adjuster(site,df,['temperature','relativehumidity'],2022,4,1,'nan_var',2022,5,31,'instrument burial!?',0)
