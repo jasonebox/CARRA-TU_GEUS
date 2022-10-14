@@ -18,6 +18,7 @@ import numpy as np
 from numpy.polynomial.polynomial import polyfit
 from os.path import exists
 
+#%%
 
 # -------------------------------- dates covered by this delivery
 date0='2021-06-01' ; date1='2022-04-01'
@@ -26,13 +27,17 @@ date0='2022-04-01' ; date1='2022-05-31'
 
 date0='2022-05-31' ; date1='2022-07-31'
 
+# dates not inclusive for date 1, so use 1 day later
+# date 0 is inclusive
+date0='2022-07-31' ; date1='2022-09-01' 
+
 os.chdir('/Users/jason/Dropbox/AWS/CARRA-TU_GEUS/')
 
 sites=[
 # "gits",
-"humboldt",
-"petermann",
-"tunu_n",
+# "humboldt", # dropped of by 30 July 2022
+# "petermann", # dropped of by 30 July 2022
+# "tunu_n", # dropped of by 30 July 2022
 # "swisscamp_10m_tower",
 # "swisscamp",
 # "crawfordpoint",
@@ -235,17 +240,17 @@ def adjuster(site,df,var_list,y0,m0,d0,func,y1,m1,d1,comment,val):
 #
 #
 
-plt_diagnostic=0
-do_batch1=1 # 1 is for P, TA and 0 is for the others
-wo=1
-ly='p'
+plt_diagnostic=1
+do_variable_group1=1 # 1 is for P, TA and 0 is for the others
+wo=0
+ly='x'
 
 for st,site in enumerate(sites):
     # if st>=0:
     # if site=='tunu_n':
     # if site=='summit':
     print(st,site,sites2[st])
-    if sites2[st]=='NAU':
+    if sites2[st]=='NEM':
     # if sites2[st]!='null' :
         
         if exists(inpath+site+'.csv'):
@@ -317,8 +322,9 @@ for st,site in enumerate(sites):
                 df=adjuster(sites_original_convention[st],df,['VW1'],2022,6,1,'max_filter',2022,7,31,'xmit outlier?',15)
 
                 df=adjuster(sites_original_convention[st],df,['VW2','winddir2'],2022,6,1,'nan_var',2022,7,31,'xmit outlier?',15)
-                df=adjuster(sites_original_convention[st],df,['TA1'],2022,5,31,'nan_var',2022,7,31,'instrument burial!?',0)
-                df=adjuster(sites_original_convention[st],df,['TA2'],2022,5,31,'max_filter',2022,7,31,'xmit outlier?',2)
+                df=adjuster(sites_original_convention[st],df,['TA1'],2022,5,31,'nan_var',2022,9,1,'instrument burial!?',0)
+                df=adjuster(sites_original_convention[st],df,['TA2'],2022,5,31,'max_filter',2022,9,1,'xmit outlier?',2)
+                df=adjuster(sites_original_convention[st],df,['TA2'],2022,5,31,'min_filter',2022,9,1,'xmit outlier?',-30)
 
             if sites2[st]=='PET':
                 df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2021,6,1,'max_filter',2022,4,1,'xmit outlier?',4)
@@ -336,11 +342,12 @@ for st,site in enumerate(sites):
                 df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2021,6,1,'max_filter',2022,4,11,'xmit outlier?',4)
                 df=adjuster(sites_original_convention[st],df,['VW1','VW2'],2021,6,1,'max_filter',2022,7,31,'xmit outlier?',20)
                 df=adjuster(sites_original_convention[st],df,['P'],2021,10,11,'max_filter',2021,11,1,'xmit outlier?',785)
-                df=adjuster(sites_original_convention[st],df,['winddir1','winddir2'],2022,2,1,'nan_var',2022,7,31,'instrument unwired?',0)
-                df=adjuster(sites_original_convention[st],df,['P'],2022,4,8,'nan_var',2022,5,31,'instrument malfunction!?',0)
-                df=adjuster(sites_original_convention[st],df,['rh1','rh2'],2022,6,1,'min_filter',2022,7,31,'xmit outlier?',55)
+                df=adjuster(sites_original_convention[st],df,['winddir1','winddir2'],2022,2,1,'nan_var',2022,9,1,'instrument unwired?',0)
+                df=adjuster(sites_original_convention[st],df,['P'],2022,4,8,'nan_var',2022,9,1,'instrument burrial!?',0)
+                df=adjuster(sites_original_convention[st],df,['rh1','rh2'],2022,6,1,'min_filter',2022,8,31,'xmit outlier?',55)
                 df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2022,5,31,'max_filter',2022,7,31,'xmit outlier?',4)
-                df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2022,7,23,'max_filter',2022,7,31,'xmit outlier?',0)
+                df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2022,7,23,'max_filter',2022,8,31,'xmit outlier?',0)
+                # df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2022,7,30,'min_filter',2022,8,31,'xmit outlier?',0)
 
             if sites2[st]=='HUM':
                 df=adjuster(sites_original_convention[st],df,['TA1'],2021,12,1,'min_filter',2022,1,12,'xmit outlier?',-20)
@@ -394,10 +401,10 @@ for st,site in enumerate(sites):
     
                 # df=adjuster(sites_original_convention[st],df,['VW1','VW2'],2022,4,1,'swap',2022,5,31,'swap lev 1 and 2',0)
     
-                df=adjuster(sites_original_convention[st],df,['rh1','rh2'],2021,4,12,'min_filter',2022,5,31,'xmit outlier?',41)
-                df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2021,12,1,'max_filter',2022,7,31,'xmit outlier?',0)
+                df=adjuster(sites_original_convention[st],df,['rh1','rh2'],2021,4,12,'min_filter',2022,8,31,'xmit outlier?',41)
+                df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2021,12,1,'max_filter',2022,8,31,'xmit outlier?',-4)
                 df=adjuster(sites_original_convention[st],df,['VW1','VW2'],2022,4,1,'max_filter',2022,5,31,'xmit outlier?',20)
-                df=adjuster(sites_original_convention[st],df,['VW1','VW2'],2022,4,1,'max_filter',2022,7,31,'xmit outlier?',20)
+                df=adjuster(sites_original_convention[st],df,['VW1','VW2'],2022,4,1,'max_filter',2022,8,31,'xmit outlier?',20)
                 df.rh1[( (df.time>datetime(2021,12,1)) & (df.time<datetime(2022,4,15)) & (df.rh1<35) )]=np.nan
                 df.rh2[( (df.time>datetime(2021,12,1)) & (df.time<datetime(2022,4,15)) & (df.rh2<35) )]=np.nan
                 df=adjuster(sites_original_convention[st],df,['winddir1'],2022,5,1,'nan_var',2022,5,16,'instrument stuck-ish',0)
@@ -406,6 +413,8 @@ for st,site in enumerate(sites):
                 df=adjuster(sites_original_convention[st],df,['VW1','VW2'],2021,4,1,'min_filter',2022,4,17,'instrument stuck-ish',1)
                 df=adjuster(sites_original_convention[st],df,['VW1'],2022,7,1,'max_filter',2022,7,31,'xmit outlier?',12)
                 df=adjuster(sites_original_convention[st],df,['P'],2022,6,26,'min_filter',2022,6,30,'xmit outlier?',737)
+                df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2021,8,10,'abs_diff',2022,8,30,'xmit outlier?',3)
+                df=adjuster(sites_original_convention[st],df,['VW1'],2022,8,1,'max_filter',2022,8,21,'xmit outlier?',14)
 
             if sites2[st]=='DY2':
                 df = df.rename({'VW1': 'temp1', 'VW2': 'temp2'}, axis=1)
@@ -421,23 +430,28 @@ for st,site in enumerate(sites):
     
                 df=adjuster(sites_original_convention[st],df,['P'],2021,6,1,'nan_var',2022,7,31,'partially broken barometer can fix with regression?',0)
                 # new batch 8 Aug
-                df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2021,5,1,'max_filter',2022,7,31,'xmit outlier?',4)
+                df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2021,5,1,'max_filter',2022,9,1,'xmit outlier?',4)
+                df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2022,7,30,'min_filter',2022,9,1,'xmit outlier?',-32)
+
                 df=adjuster(sites_original_convention[st],df,['VW1','VW2'],2022,6,1,'max_filter',2022,7,31,'xmit outlier?',20)
                 df=adjuster(sites_original_convention[st],df,['rh1'],2022,6,1,'min_filter',2022,7,31,'xmit outlier?',65)
+                df=adjuster(sites_original_convention[st],df,['P'],2022,7,30,'nan_var',2022,9,1,'instrument fail!?',0)
+                df=adjuster(sites_original_convention[st],df,['rh1','rh2'],2021,7,30,'min_filter',2022,9,1,'xmit outlier?',69)
+                df=adjuster(sites_original_convention[st],df,['VW1','VW2'],2022,7,30,'max_filter',2022,8,27,'xmit outlier?',20)
     
             if sites2[st]=='NAE':
                 df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2021,6,1,'max_filter',2022,5,8,'xmit outlier?',4)
                 df=adjuster(sites_original_convention[st],df,['rh1','rh2'],2021,6,1,'min_filter',2022,5,8,'xmit outlier?',40)
                 df=adjuster(sites_original_convention[st],df,['VW1','VW2'],2021,6,1,'max_filter',2022,5,8,'xmit outlier?',15)
-                df=adjuster(sites_original_convention[st],df,['winddir2'],2021,6,1,'nan_var',2022,7,31,'partially broken?',0)
-                df=adjuster(sites_original_convention[st],df,['VW1'],2021,6,1,'nan_var',2022,7,31,'partially broken?',0)
+                df=adjuster(sites_original_convention[st],df,['winddir2'],2021,6,1,'nan_var',2022,9,1,'partially broken?',0)
+                df=adjuster(sites_original_convention[st],df,['VW1'],2021,6,1,'nan_var',2022,9,1,'partially broken?',0)
                 df=adjuster(sites_original_convention[st],df,['VW2'],2022,5,10,'min_filter',2022,5,22,'frozen propellor?',1)
     
                 df.Battery[( (df.time>datetime(2021,12,1)) & (df.time<datetime(2031,12,31)) & (df.Battery>16) )]=np.nan
 
-                df=adjuster(sites_original_convention[st],df,['rh1','rh2'],2022,5,31,'min_filter',2022,7,31,'xmit outlier?',50)
-                df=adjuster(sites_original_convention[st],df,['VW1','VW2'],2022,6,1,'max_filter',2022,7,31,'xmit outlier?',15)
-                df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2022,5,31,'max_filter',2022,7,31,'xmit outlier?',4)
+                df=adjuster(sites_original_convention[st],df,['rh1','rh2'],2022,5,31,'min_filter',2022,9,1,'xmit outlier?',50)
+                df=adjuster(sites_original_convention[st],df,['VW1','VW2'],2022,6,1,'max_filter',2022,9,1,'xmit outlier?',15)
+                df=adjuster(sites_original_convention[st],df,['TA1','TA2'],2022,5,31,'max_filter',2022,9,1,'xmit outlier?',4)
 
 
             if sites2[st]=='EGP':
@@ -466,7 +480,7 @@ for st,site in enumerate(sites):
                 df['relativehumidity']=df.rh1
             df['windspeed']=df[['VW1', 'VW2']].mean(axis=1)        
     
-            t0=datetime(2022, 6, 1) ; t1=datetime(2022, 7, 31)
+            t0=datetime(2022, 7, 30) ; t1=datetime(2022, 9, 1)
     
             # if sites2[st]=='SUM':
             #     t0=datetime(2022,3,13,14)
@@ -495,7 +509,7 @@ for st,site in enumerate(sites):
                 if show_rejected:ax[cc].plot(df.P_raw,'.r',label='pressure rejected')
         
         # Pressure
-                if do_batch1:
+                if do_variable_group1:
                     do_P=1
                 else:do_P=0
                 if do_P:
@@ -506,7 +520,7 @@ for st,site in enumerate(sites):
                     cc+=1
         
         # air temperature
-                if do_batch1:
+                if do_variable_group1:
                     do_T=1
                 else:do_T=0
                 if do_T:
@@ -518,7 +532,7 @@ for st,site in enumerate(sites):
                     ax[cc].set_xlim(t0,t1)
                     cc+=1
         # dT
-                if do_batch1:
+                if do_variable_group1:
                     do_dT=1
                 else:do_dT=0
                 if do_dT:
@@ -531,7 +545,7 @@ for st,site in enumerate(sites):
                     ax[cc].set_xlim(t0,t1)
                     # cc+=1
         # humidity
-                if do_batch1==0:
+                if do_variable_group1==0:
                     do_rh=1
                 else:do_rh=0
                 if do_rh:
@@ -547,7 +561,7 @@ for st,site in enumerate(sites):
                     ax[cc].set_xlim(t0,t1)
                     cc+=1
         # wind speed
-                if do_batch1==0:
+                if do_variable_group1==0:
                     do_VW=1
                 else:do_VW=0
                 if do_VW:
@@ -561,7 +575,7 @@ for st,site in enumerate(sites):
                     ax[cc].set_xlim(t0,t1)
                     cc+=1
         # wind dir
-                if do_batch1==0:
+                if do_variable_group1==0:
                     do_dir=1
                 else:do_dir=0
                 if do_dir:
