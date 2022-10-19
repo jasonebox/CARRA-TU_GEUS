@@ -1,2 +1,2 @@
 t0,t1,variable,adjust_function,adjust_value,comment,count
-2022-04-01T00:00:00+00:00,2022-07-31T00:00:00+00:00,temperature,max_filter,9,xmit outlier?,5
+2022-04-01T00:00:00+00:00,2022-07-31T00:00:00+00:00,temperature,max_filter,9,xmit outlier?,0
