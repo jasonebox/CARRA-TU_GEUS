@@ -15,7 +15,7 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np
-from numpy.polynomial.polynomial import polyfit
+# from numpy.polynomial.polynomial import polyfit
 from os.path import exists
 
 #%%
@@ -26,10 +26,13 @@ date0='2021-06-01' ; date1='2022-04-01'
 date0='2022-04-01' ; date1='2022-05-31'
 
 date0='2022-05-31' ; date1='2022-07-31'
+date0='2022-05-31' ; date1='2022-07-31'
 
 # dates not inclusive for date 1, so use 1 day later
 # date 0 is inclusive
 date0='2022-07-31' ; date1='2022-09-01' 
+
+date0='2022-10-12' ; date1='2022-12-31'
 
 os.chdir('/Users/jason/Dropbox/AWS/CARRA-TU_GEUS/')
 
